@@ -1,25 +1,16 @@
-from AlgorithmImports import *
-
-class DaxPreMarketStrategy(QCAlgorithm):
-
     def Initialize(self):
         # Configuración básica
-        self.SetStartDate(2023, 1, 1)  # Fecha de inicio del backtest
-        self.SetEndDate(2023, 12, 31)  # Fecha de fin del backtest
-        self.SetCash(100000)  # Capital inicial
+        self.SetStartDate(2022, 1, 1)  # Fecha de inicio del backtest, hace 1 año
+        self.SetEndDate(2023, 1, 1)  # Fecha de fin del backtest
+        self.SetCash(100000)  # Capital inicial de $100,000
 
-        # Configuración del activo
+        # Configuración del activo - CFD del índice DAX
         self.dax = self.AddCfd("DE30EUR", Resolution.Minute, Market.Oanda).Symbol
 
-        # Parámetros de la estrategia para optimización
-        self.take_profit = self.GetParameter("take_profit") or 6  # Valor predeterminado de 6 puntos
-        self.take_profit = int(self.take_profit)
-        
-        self.exit_point = self.GetParameter("exit_point") or 9  # Valor predeterminado de 9 puntos
-        self.exit_point = int(self.exit_point)
-        
-        self.entry_minute = self.GetParameter("entry_minute") or 59  # Valor predeterminado del minuto 59
-        self.entry_minute = int(self.entry_minute)
+        # Definición de parámetros para optimización
+        self.take_profit = int(self.GetParameter("take_profit", 9))  # Normal 9, min 4, max 20
+        self.exit_point = int(self.GetParameter("exit_point", 6))    # Normal 6, min 4, max 20
+        self.entry_minute = int(self.GetParameter("entry_minute", 5)) # Normal 5, min 1, max 60
 
         # Variables de la estrategia
         self.high = None
@@ -77,7 +68,7 @@ class DaxPreMarketStrategy(QCAlgorithm):
                 if self.buy_order_ticket is not None:
                     self.buy_order_ticket.Cancel()
 
-            # Configurar stop loss y take profit
+            # Configurar stop loss y take profit utilizando parámetros
             entry_price = orderEvent.FillPrice
             if self.active_trade == "long":
                 stop_price = entry_price - self.exit_point  # exit_point puntos abajo
